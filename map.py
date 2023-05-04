@@ -32,6 +32,17 @@ class Map:
             if vec[i] >= self.size[i] * self.cell_size:
                 raise Exception("World coordinates greater then map size")
 
+    def get_score(self, robot: Robot, points: np.array) -> float:
+        res = 0
+        for lidar_point in points:
+            if lidar_point.type == LidarPointType.UNKNOWN:
+                continue
+            point = lidar_point.point
+            occupied = lidar_point.type == LidarPointType.POINT
+            last = self.get_cell(self.world2map(robot.lidar2map(point)))
+            res += last.p if occupied else 1 - last.p
+        return res
+
     def update(self, robot: Robot, points: np.array):
         for lidar_point in points:
             if lidar_point.type == LidarPointType.UNKNOWN:
