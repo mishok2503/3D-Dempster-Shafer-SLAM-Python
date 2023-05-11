@@ -6,10 +6,10 @@ class Robot:
     def __init__(self, pos: np.array = np.zeros(3), rot: np.array = np.zeros(3)):
         self.position = pos
         self.rotation = rot
-        self.__rotation_matrix = rotation_matrix(rot)
+        self.rotation_matrix = rotation_matrix(rot)
 
     def lidar2map(self, point: np.array) -> np.array:
-        return self.__rotation_matrix @ point + self.position
+        return self.rotation_matrix @ point + self.position
 
     def apply_true(self, delta_pos: np.array, delta_rot: np.array):
         self.rotation += delta_rot
@@ -17,7 +17,7 @@ class Robot:
 
     def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 150):
         best, score = None, -1
-        probit = 3
+        probit = 10
         stddev_pos = np.linalg.norm(delta_pos) / probit
         stddev_rot = 0.03 / probit
         for i in range(samples):
@@ -36,4 +36,4 @@ class Robot:
     def copy(self, other: 'Robot'):
         self.position = other.position
         self.rotation = other.rotation
-        self.__rotation_matrix = other.__rotation_matrix
+        self.rotation_matrix = other.rotation_matrix
