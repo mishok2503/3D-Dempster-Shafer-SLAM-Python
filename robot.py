@@ -15,7 +15,7 @@ class Robot:
         self.rotation += delta_rot
         self.position += rotation_matrix(self.rotation) @ delta_pos
 
-    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 150):
+    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 50):
         best, score = None, -1
         probit = 3
         stddev_pos = np.linalg.norm(delta_pos) / probit

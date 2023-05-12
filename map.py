@@ -39,7 +39,10 @@ class Map:
                 continue
             point = lidar_point.point
             occupied = lidar_point.type == LidarPointType.POINT
-            last = self.get_cell(self.world2map(robot.lidar2map(point)))
+            try:
+                last = self.get_cell(self.world2map(robot.lidar2map(point)))
+            except Exception:
+                return -1
             res += last.p if occupied else 1 - last.p
         return res
 
@@ -49,11 +52,14 @@ class Map:
                 continue
             point = lidar_point.point
             occupied = lidar_point.type == LidarPointType.POINT
-            self.__beam_update(
-                self.world2map(robot.position),
-                self.world2map(robot.lidar2map(point)),
-                occupied
-            )
+            try:
+                self.__beam_update(
+                    self.world2map(robot.position),
+                    self.world2map(robot.lidar2map(point)),
+                    occupied
+                )
+            except Exception:
+                pass
 
     def __beam_update(self, begin: Tuple[int, ...], end: Tuple[int, ...], occupied: bool):
         points = bresenham3_line(begin, end)
