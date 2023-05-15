@@ -41,7 +41,10 @@ class Map:
         occ = [p.type == LidarPointType.POINT for p in points if p.type != LidarPointType.UNKNOWN]
         res = 0
         for p, o in zip(world_points, occ):
-            res += self.get_cell(p).get_score(o)
+            if 0 <= p[0] < self.size[0] and 0 <= p[1] < self.size[1] and 0 <= p[2] < self.size[2]:
+                res += self.get_cell(p).get_score(o)
+            else:
+                return -1
         return res
         # for lidar_point in points:
         #     if lidar_point.type == LidarPointType.UNKNOWN:
@@ -76,7 +79,8 @@ class Map:
             self.__cell_update(coords, occupied * hole_coef, quality)
 
     def __cell_update(self, coords: Tuple[int, ...], value: float, quality: float):
-        self.get_cell(coords).update(value, quality)
+        if 0 <= coords[0] < self.size[0] and 0 <= coords[1] < self.size[1] and 0 <= coords[2] < self.size[2]:
+            self.get_cell(coords).update(value, quality)
 
     def get_cell(self, coords: Tuple[int, ...]) -> Cell:
         return self.__map[coords[0]][coords[1]][coords[2]]

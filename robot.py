@@ -15,14 +15,15 @@ class Robot:
         self.rotation += delta_rot
         self.position += rotation_matrix(self.rotation) @ delta_pos
 
-    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 150):
+    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 300):
         best, score = None, -1
-        probit = 10
-        stddev_pos = np.linalg.norm(delta_pos) / probit
-        stddev_rot = 0.03 / probit
+        probit = 50
+        stddev_pos = 1 / probit
+        stddev_rot = 1 / probit
         for i in range(samples):
-            delta_rot += np.random.normal(0, stddev_rot, 3)
-            delta_pos += np.random.normal(0, stddev_pos, 3)
+            delta_rot = [0, 0, np.random.normal(0, stddev_rot)]
+            delta_pos = np.random.normal(0, stddev_pos, 3)
+            delta_pos[2] = 0
             rot = self.rotation + delta_rot
             pos = self.position + rotation_matrix(rot) @ delta_pos
             new_robot = Robot(pos, rot)
@@ -31,7 +32,11 @@ class Robot:
                 score = s
                 best = new_robot
 
-        self.copy(best)
+        if score != -1:
+            self.copy(best)
+            print("GOOD")
+        else:
+            print("BAD")
 
     def copy(self, other: 'Robot'):
         self.position = other.position
