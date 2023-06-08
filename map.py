@@ -8,7 +8,7 @@ from util import bresenham3_line, numpy_map
 
 
 class Map:
-    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 5):
+    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 2):
         self.size = size
         self.cell_size = cell_size
         self.hole_size = hole_size
@@ -18,19 +18,19 @@ class Map:
     def get_center(self) -> np.array:
         return self.cell_size * numpy_map(lambda c: c / 2, self.size)
 
-    def world2map(self, vec: np.array) -> Tuple[int, ...]:
-        self.check_world_coords(vec)
-        return tuple(map(lambda c: int(c / self.cell_size), vec))
+    def world2map(self, vec: np.array) -> Tuple[int, int, int]:
+        # self.check_world_coords(vec)
+        return int(vec[0] / self.cell_size), int(vec[1] / self.cell_size), int(vec[2] / self.cell_size)
 
     def map2world(self, coords: Tuple[int, int, int]) -> np.array:
         return numpy_map(lambda c: (c + 0.5) * self.cell_size, coords)
 
-    def check_world_coords(self, vec: np.array):
-        if (vec < 0).any():
-            raise Exception("World coordinates less then zero")
-        for i in [0, 1, 2]:
-            if vec[i] >= self.size[i] * self.cell_size:
-                raise Exception("World coordinates greater then map size")
+    # def check_world_coords(self, vec: np.array):
+    #     if (vec < 0).any():
+    #         raise Exception("World coordinates less then zero")
+    #     for i in [0, 1, 2]:
+    #         if vec[i] >= self.size[i] * self.cell_size:
+    #             raise Exception("World coordinates greater then map size")
 
     def get_score(self, robot: Robot, points: np.array) -> float:
         res = 0

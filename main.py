@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import open3d as o3d
 import json
@@ -6,7 +8,7 @@ from robot import Robot
 from map import Map
 from lidar import LidarPoint, LidarPointType
 
-world = Map((200, 200, 200), 0.2)
+world = Map((200, 200, 150), 0.1)
 robot = Robot(world.get_center())
 
 vis = o3d.visualization.Visualizer()
@@ -25,14 +27,23 @@ pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector([])
 vis.add_geometry(pcd)
 
-robot_box = o3d.geometry.TriangleMesh.create_sphere(radius=0.15)
+# robot_box = o3d.geometry.TriangleMesh.create_sphere(radius=0.15)
+robot_box = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=0.05,
+                                                   cone_radius=0.1,
+                                                   cylinder_height=0.15,
+                                                   cone_height=0.1,
+                                                   resolution=30,
+                                                   cylinder_split=1,
+                                                   cone_split=1)
+robot_box.rotate(robot_box.get_rotation_matrix_from_xyz((np.pi / 2, np.pi / 2, 0)))
 robot_box.compute_vertex_normals()
 robot_box.paint_uniform_color([1, 0, 0])
-vis.add_geometry(robot_box)
+# vis.add_geometry(robot_box)
 
 e = 0
 rot, pos = None, None
-with open("ros.json", "r") as file:
+keep_running = True
+with open("result.json", "r") as file:
     data = json.load(file)["data"]
     for measurement in data["measurements"]:
         lidar_data = []
@@ -45,15 +56,21 @@ with open("ros.json", "r") as file:
             lidar_data.append(LidarPoint(np.array(point["coordinates"]), point_type))
         lidar_data = np.array(lidar_data)
 
+        samples = []
         if pos is not None:
-            # robot.apply_odometry(pos, rot, world, lidar_data)
-            pos[2] = 0
-            robot.apply_true(pos, rot)
+            samples = robot.apply_odometry(pos, rot, world, lidar_data)
+            # robot.apply_true(pos, rot)
 
         pos = np.array(measurement["odometry"]["position"])
         rot = np.array(measurement["odometry"]["euler_angles"])
 
         world.update(robot, lidar_data)
+
+        e += 1
+        print(e)
+
+        if e < 18:
+            continue
 
         ###############################
 
@@ -61,7 +78,10 @@ with open("ros.json", "r") as file:
         tr.append(robot.position)
         lines.append([len(tr) - 2, len(tr) - 1])
         l_colors.append([0, 1, 0])
-        robot_box.translate(tr[-1], relative=False)
+        rts = [copy.deepcopy(robot_box).translate(r.position, relative=False).rotate(r.get_rotation_matrix()) for r in samples]
+        rt = copy.deepcopy(robot_box).translate(tr[-1], relative=False).rotate(robot.get_rotation_matrix())
+        # robot_box.translate(tr[-1], relative=False)
+        # robot_box.rotate(robot.get_rotation_matrix())
         for x in range(world.size[0]):
             for y in range(world.size[1]):
                 for z in range(world.size[2]):
@@ -85,14 +105,20 @@ with open("ros.json", "r") as file:
         vis.remove_geometry(line_set)
         pcd.points = o3d.utility.Vector3dVector(res)
         vis.add_geometry(pcd)
+        vis.add_geometry(rt)
+        for qw in rts:
+            vis.add_geometry(qw)
         vis.add_geometry(line_set)
-        vis.update_geometry(robot_box)
+        # vis.update_geometry(robot_box)
 
         keep_running = vis.poll_events()
         vis.update_renderer()
+        vis.remove_geometry(rt)
+        for qw in rts:
+            vis.remove_geometry(qw)
 
-        e += 1
-        print(e)
+        if e > 20:
+            break
 
     while keep_running:
         keep_running = vis.poll_events()
