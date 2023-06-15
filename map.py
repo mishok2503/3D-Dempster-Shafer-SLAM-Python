@@ -23,28 +23,7 @@ class Map:
         return int(vec[0] / self.cell_size), int(vec[1] / self.cell_size), int(vec[2] / self.cell_size)
 
     def map2world(self, coords: Tuple[int, int, int]) -> np.array:
-        return numpy_map(lambda c: (c + 0.5) * self.cell_size, coords)
-
-    # def check_world_coords(self, vec: np.array):
-    #     if (vec < 0).any():
-    #         raise Exception("World coordinates less then zero")
-    #     for i in [0, 1, 2]:
-    #         if vec[i] >= self.size[i] * self.cell_size:
-    #             raise Exception("World coordinates greater then map size")
-
-    def get_score(self, robot: Robot, points: np.array) -> float:
-        res = 0
-        for lidar_point in points:
-            if lidar_point.type == LidarPointType.UNKNOWN:
-                continue
-            point = lidar_point.point
-            occupied = lidar_point.type == LidarPointType.POINT
-            try:
-                last = self.get_cell(self.world2map(robot.lidar2map(point)))
-            except Exception:
-                return -1
-            res += last.p if occupied else 1 - last.p
-        return res
+        return (coords[0] + 0.5) * self.cell_size, (coords[1] + 0.5) * self.cell_size, (coords[2] + 0.5) * self.cell_size
 
     def update(self, robot: Robot, points: np.array):
         for lidar_point in points:
@@ -77,3 +56,11 @@ class Map:
 
     def get_cell(self, coords: Tuple[int, ...]) -> Cell:
         return self.__map[coords[0]][coords[1]][coords[2]]
+
+    def w2m(self, robot: Robot, vecs : np.array) -> np.array:
+        return ((np.einsum("ij,kj->ik", vecs, robot.rotation_matrix) + robot.position) / self.cell_size).astype(int)
+
+    def get_score(self, robot: Robot, points: np.array):
+        world_points = self.w2m(robot, np.array([p.point for p in points if p.type == LidarPointType.POINT]))
+        return np.sum([self.get_cell(p).p for p in world_points])
+

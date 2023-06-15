@@ -1,4 +1,5 @@
 import copy
+import sys
 
 import numpy as np
 import open3d as o3d
@@ -8,7 +9,7 @@ from robot import Robot
 from map import Map
 from lidar import LidarPoint, LidarPointType
 
-world = Map((200, 200, 150), 0.1)
+world = Map((250, 250, 200), 0.1)
 robot = Robot(world.get_center())
 
 vis = o3d.visualization.Visualizer()
@@ -41,9 +42,10 @@ robot_box.paint_uniform_color([1, 0, 0])
 # vis.add_geometry(robot_box)
 
 e = 0
+# N = 200
 rot, pos = None, None
 keep_running = True
-with open("result.json", "r") as file:
+with open(sys.argv[1], "r") as file:
     data = json.load(file)["data"]
     for measurement in data["measurements"]:
         lidar_data = []
@@ -69,8 +71,8 @@ with open("result.json", "r") as file:
         e += 1
         print(e)
 
-        if e < 18:
-            continue
+        # if e <t  N:
+        #     continue
 
         ###############################
 
@@ -117,8 +119,8 @@ with open("result.json", "r") as file:
         for qw in rts:
             vis.remove_geometry(qw)
 
-        if e > 20:
-            break
+        # if e > N:
+        #     break
 
     while keep_running:
         keep_running = vis.poll_events()
