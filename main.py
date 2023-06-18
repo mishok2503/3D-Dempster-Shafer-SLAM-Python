@@ -42,7 +42,7 @@ robot_box.paint_uniform_color([1, 0, 0])
 # vis.add_geometry(robot_box)
 
 e = 0
-# N = 200
+N = 200
 rot, pos = None, None
 keep_running = True
 with open(sys.argv[1], "r") as file:
@@ -58,9 +58,10 @@ with open(sys.argv[1], "r") as file:
             lidar_data.append(LidarPoint(np.array(point["coordinates"]), point_type))
         lidar_data = np.array(lidar_data)
 
-        samples = []
+        # samples = []
         if pos is not None:
-            samples = robot.apply_odometry(pos, rot, world, lidar_data)
+            robot.apply_odometry(pos, rot, world, lidar_data)
+            # samples = robot.apply_odometry(pos, rot, world, lidar_data)
             # robot.apply_true(pos, rot)
 
         pos = np.array(measurement["odometry"]["position"])
@@ -71,8 +72,8 @@ with open(sys.argv[1], "r") as file:
         e += 1
         print(e)
 
-        # if e <t  N:
-        #     continue
+        if e < N:
+            continue
 
         ###############################
 
@@ -80,14 +81,14 @@ with open(sys.argv[1], "r") as file:
         tr.append(robot.position)
         lines.append([len(tr) - 2, len(tr) - 1])
         l_colors.append([0, 1, 0])
-        rts = [copy.deepcopy(robot_box).translate(r.position, relative=False).rotate(r.get_rotation_matrix()) for r in samples]
+        # rts = [copy.deepcopy(robot_box).translate(r.position, relative=False).rotate(r.get_rotation_matrix()) for r in samples]
         rt = copy.deepcopy(robot_box).translate(tr[-1], relative=False).rotate(robot.get_rotation_matrix())
         # robot_box.translate(tr[-1], relative=False)
         # robot_box.rotate(robot.get_rotation_matrix())
         for x in range(world.size[0]):
             for y in range(world.size[1]):
                 for z in range(world.size[2]):
-                    p = world.get_cell((x, y, z)).p
+                    p = world.get_cell((x, y, z)).get_p()
                     if p < 0.6:
                         continue
                     res.append([x * t, y * t, z * t])
@@ -108,19 +109,19 @@ with open(sys.argv[1], "r") as file:
         pcd.points = o3d.utility.Vector3dVector(res)
         vis.add_geometry(pcd)
         vis.add_geometry(rt)
-        for qw in rts:
-            vis.add_geometry(qw)
+        # for qw in rts:
+        #     vis.add_geometry(qw)
         vis.add_geometry(line_set)
         # vis.update_geometry(robot_box)
 
         keep_running = vis.poll_events()
         vis.update_renderer()
         vis.remove_geometry(rt)
-        for qw in rts:
-            vis.remove_geometry(qw)
+        # for qw in rts:
+        #     vis.remove_geometry(qw)
 
-        # if e > N:
-        #     break
+        if e > N:
+            break
 
     while keep_running:
         keep_running = vis.poll_events()

@@ -25,7 +25,7 @@ class Robot:
         stddev_pos = 0.1
         stddev_rot = 0.5
 
-        res = []
+        # res = []
 
         for i in range(samples):
             dr = [np.random.normal(0, stddev_rot), 0, 0]
@@ -34,13 +34,13 @@ class Robot:
             pos = self.position + rotation_matrix(rot) @ delta_pos + dp
             new_robot = Robot(pos, rot)
             s = world.get_score(new_robot, data)
-            res.append(new_robot)
+            # res.append(new_robot)
             if s > score:
                 score = s
                 best = new_robot
 
         self.copy(best)
-        return res
+        # return res
 
     def copy(self, other: 'Robot'):
         self.position = other.position
