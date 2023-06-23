@@ -20,12 +20,12 @@ class Robot:
             self.rotation_matrix = rotation_matrix(self.rotation)
         self.position += self.rotation_matrix @ delta_pos
 
-    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 300):
+    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 400):
         best, score = None, -1
         stddev_pos = 0.1
         stddev_rot = 0.5
 
-        # res = []
+        res = []
 
         for i in range(samples):
             dr = [np.random.normal(0, stddev_rot), 0, 0]
@@ -34,13 +34,13 @@ class Robot:
             pos = self.position + rotation_matrix(rot) @ delta_pos + dp
             new_robot = Robot(pos, rot)
             s = world.get_score(new_robot, data)
-            # res.append(new_robot)
+            res.append(new_robot)
             if s > score:
                 score = s
                 best = new_robot
 
         self.copy(best)
-        # return res
+        return res
 
     def copy(self, other: 'Robot'):
         self.position = other.position

@@ -8,7 +8,7 @@ from util import bresenham3_line, numpy_map
 
 
 class Map:
-    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 4):
+    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 5):
         self.size = size
         self.cell_size = cell_size
         self.hole_size = hole_size
