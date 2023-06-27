@@ -8,7 +8,7 @@ from util import bresenham3_line, numpy_map
 
 
 class Map:
-    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 5):
+    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 4):
         self.size = size
         self.cell_size = cell_size
         self.hole_size = hole_size
@@ -41,15 +41,14 @@ class Map:
                 pass
 
     def __beam_update(self, begin: Tuple[int, ...], end: Tuple[int, ...], occupied: bool):
-        points = bresenham3_line(begin, end)
+        points = bresenham3_line(begin, end, self.hole_size)
         quality = 0.7  # TODO
-        for coords in points[:-self.hole_size]:
+        full_hole = self.hole_size * 2 + 1
+        for coords in points[:-full_hole]:
             self.__cell_update(coords, 0, quality)  # remove constant
 
-        hole_coef = 0
-        for coords in points[-self.hole_size:]:
-            hole_coef += 1 / self.hole_size
-            self.__cell_update(coords, (1 + occupied * hole_coef) / 2, quality)
+        for i in range(full_hole):
+            self.__cell_update(points[i - full_hole], 1 - abs(i - self.hole_size) / self.hole_size, quality)
 
     def __cell_update(self, coords: Tuple[int, ...], value: float, quality: float):
         self.get_cell(coords).update(value, quality)

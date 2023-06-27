@@ -17,7 +17,7 @@ def rotation_matrix(rotation: np.array) -> np.array:
 
 
 # https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing
-def bresenham3_line(begin: Tuple[int, ...], end: Tuple[int, ...]) -> List[Tuple[int, ...]]:
+def bresenham3_line(begin: Tuple[int, ...], end: Tuple[int, ...], more_steps: int = 0) -> List[Tuple[int, ...]]:
     x1, y1, z1 = begin
     x2, y2, z2 = end
     results = [(x1, y1, z1)]
@@ -28,7 +28,7 @@ def bresenham3_line(begin: Tuple[int, ...], end: Tuple[int, ...]) -> List[Tuple[
     if dx >= dy and dx >= dz:
         p1 = 2 * dy - dx
         p2 = 2 * dz - dx
-        while x1 != x2:
+        while x1 != x2 + xs * more_steps:
             x1 += xs
             if p1 >= 0:
                 y1 += ys
@@ -44,7 +44,7 @@ def bresenham3_line(begin: Tuple[int, ...], end: Tuple[int, ...]) -> List[Tuple[
     elif dy >= dx and dy >= dz:
         p1 = 2 * dx - dy
         p2 = 2 * dz - dy
-        while y1 != y2:
+        while y1 != y2 + ys * more_steps:
             y1 += ys
             if p1 >= 0:
                 x1 += xs
@@ -60,7 +60,7 @@ def bresenham3_line(begin: Tuple[int, ...], end: Tuple[int, ...]) -> List[Tuple[
     else:
         p1 = 2 * dy - dz
         p2 = 2 * dx - dz
-        while z1 != z2:
+        while z1 != z2 + zs * more_steps:
             z1 += zs
             if p1 >= 0:
                 y1 += ys

@@ -43,7 +43,7 @@ robot_box.paint_uniform_color([1, 0, 0])
 # vis.add_geometry(robot_box)
 
 e = 0
-N = 3000
+N = 1500
 rot, pos = None, None
 keep_running = True
 with open(sys.argv[1], "r") as file:
