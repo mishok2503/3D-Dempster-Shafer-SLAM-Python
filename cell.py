@@ -21,17 +21,12 @@ def combine(a, b):
     return c
 
 
-class Cell:
+class DSCell:
     def __init__(self, p: float = 0.5):
-        self.p = Cell.__get_ds(p)
+        self.p = DSCell.__get_ds(p)
 
-    # def update(self, value: float, quality: float):
-    #     self.p = (1.0 - quality) * self.p + quality * value
-    def update(self, value: float, quality: float):
-        print("RES")
-        print(self.p)
-        self.p = combine(self.p, Cell.__get_ds(value))
-        print(self.p)
+    def update(self, value: float):
+        self.p = combine(self.p, DSCell.__get_ds(value))
 
     @staticmethod
     def __get_ds(p: float):
@@ -45,23 +40,21 @@ class Cell:
     def get_p(self):
         return self.p[(0, 1)] + self.p[(1, 1)] / 2
 
-    def get_score(self, occupied) -> float:
+    def get_score(self) -> float:
         return self.get_p()
 
 
+class Cell:
+    def __init__(self, p: float = 0.5):
+        self.sum = p
+        self.n = 1
 
+    def update(self, value: float):
+        self.sum += value
+        self.n += 1
 
-# class Cell:
-#     def __init__(self, p: float = 0.5):
-#         self.sum = p
-#         self.n = 1
-#
-#     def update(self, value: float, quality: float):
-#         self.sum += value
-#         self.n += 1
-#
-#     def get_p(self):
-#         return self.sum / self.n
-#
-#     def get_score(self, occupied) -> float:
-#         return self.get_p() if occupied else 1 - self.get_p()
+    def get_p(self):
+        return self.sum / self.n
+
+    def get_score(self) -> float:
+        return self.get_p()

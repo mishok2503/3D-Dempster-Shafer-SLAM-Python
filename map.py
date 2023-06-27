@@ -3,17 +3,17 @@ from typing import Tuple
 
 from lidar import LidarPointType
 from robot import Robot
-from cell import Cell
+from cell import Cell, DSCell
 from util import bresenham3_line, numpy_map
 
 
 class Map:
-    def __init__(self, size: Tuple[int, int, int], cell_size: float, hole_size: int = 4):
+    def __init__(self, size: Tuple[int, int, int], cell_size: float, is_ds: bool = False, hole_size: int = 4):
         self.size = size
         self.cell_size = cell_size
         self.hole_size = hole_size
         rx, ry, rz = map(range, size)
-        self.__map = np.array([[[Cell() for _ in rz] for _ in ry] for _ in rx])
+        self.__map = np.array([[[DSCell() if is_ds else Cell() for _ in rz] for _ in ry] for _ in rx])
 
     def get_center(self) -> np.array:
         return self.cell_size * numpy_map(lambda c: c / 2, self.size)
@@ -27,31 +27,25 @@ class Map:
 
     def update(self, robot: Robot, points: np.array):
         for lidar_point in points:
-            if lidar_point.type == LidarPointType.UNKNOWN:
-                continue
-            point = lidar_point.point
-            occupied = lidar_point.type == LidarPointType.POINT
-            try:
+            if lidar_point.type == LidarPointType.POINT:
                 self.__beam_update(
                     self.world2map(robot.position),
-                    self.world2map(robot.lidar2map(point)),
-                    occupied
+                    self.world2map(robot.lidar2world(lidar_point.point)),
                 )
-            except Exception:
-                pass
 
-    def __beam_update(self, begin: Tuple[int, ...], end: Tuple[int, ...], occupied: bool):
+    def __beam_update(self, begin: Tuple[int, ...], end: Tuple[int, ...]):
         points = bresenham3_line(begin, end, self.hole_size)
-        quality = 0.7  # TODO
         full_hole = self.hole_size * 2 + 1
+        if len(points) < full_hole + 1:
+            return
         for coords in points[:-full_hole]:
-            self.__cell_update(coords, 0, quality)  # remove constant
+            self.__cell_update(coords, 0)
 
         for i in range(full_hole):
-            self.__cell_update(points[i - full_hole], 1 - abs(i - self.hole_size) / self.hole_size, quality)
+            self.__cell_update(points[i - full_hole], 1 - abs(i - self.hole_size) / self.hole_size)
 
-    def __cell_update(self, coords: Tuple[int, ...], value: float, quality: float):
-        self.get_cell(coords).update(value, quality)
+    def __cell_update(self, coords: Tuple[int, ...], value: float):
+        self.get_cell(coords).update(value)
 
     def get_cell(self, coords: Tuple[int, ...]) -> Cell:
         return self.__map[coords[0]][coords[1]][coords[2]]
@@ -61,5 +55,5 @@ class Map:
 
     def get_score(self, robot: Robot, points: np.array):
         world_points = self.w2m(robot, np.array([p.point for p in points if p.type == LidarPointType.POINT]))
-        return np.sum([self.get_cell(p).get_p() for p in world_points])
+        return np.sum([self.get_cell(p).get_score() for p in world_points])
 

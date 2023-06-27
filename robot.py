@@ -8,17 +8,8 @@ class Robot:
         self.rotation = rot
         self.rotation_matrix = rotation_matrix(rot)
 
-    def lidar2map(self, point: np.array) -> np.array:
+    def lidar2world(self, point: np.array) -> np.array:
         return self.rotation_matrix @ point + self.position
-
-    def get_rotation_matrix(self):
-        return self.rotation_matrix
-
-    def apply_true(self, delta_pos: np.array, delta_rot: np.array):
-        self.rotation += delta_rot
-        if (delta_rot != [0, 0, 0]).any():
-            self.rotation_matrix = rotation_matrix(self.rotation)
-        self.position += self.rotation_matrix @ delta_pos
 
     def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 400):
         best, score = None, -1
