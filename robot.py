@@ -11,10 +11,10 @@ class Robot:
     def lidar2world(self, point: np.array) -> np.array:
         return self.rotation_matrix @ point + self.position
 
-    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 400):
+    def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 300):
         best, score = None, -1
         stddev_pos = 0.11
-        stddev_rot = 0.4
+        stddev_rot = 1
 
         # res = []
         self.rotation += delta_rot

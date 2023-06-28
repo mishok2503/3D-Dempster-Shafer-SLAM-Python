@@ -1,3 +1,4 @@
+import copy
 import sys
 
 import numpy as np
@@ -17,10 +18,19 @@ vis.create_window()
 
 t = world.cell_size
 
-robot_box = o3d.geometry.TriangleMesh.create_sphere(0.1)
-robot_box.paint_uniform_color([0.9, 0.1, 0.1])
-robot_box.compute_vertex_normals()
-vis.add_geometry(robot_box)
+lines = [[0, i + 1] for i in range(600)]
+colors = [[0, 1, 0] for i in range(len(lines))]
+line_set = o3d.geometry.LineSet()
+line_set.lines = o3d.utility.Vector2iVector(lines)
+line_set.colors = o3d.utility.Vector3dVector(colors)
+vis.add_geometry(line_set)
+
+# robot_box = o3d.geometry.TriangleMesh.create_sphere(0.1)
+# robot_box.paint_uniform_color([1, 0, 0])
+# vis.add_geometry(robot_box)
+# helper = copy.deepcopy(robot_box)
+# helper.translate(robot.position - [0, 3, 0 ])
+# vis.add_geometry(helper)
 
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector([])
@@ -59,15 +69,20 @@ with open(sys.argv[1], "r") as file:
 
         ###############################
 
-        robot_box.translate(robot.position, relative=False)
-        vis.update_geometry(robot_box)
+        # robot_box.translate(robot.position, relative=False)
+        # vis.update_geometry(robot_box)
+
+        points = [robot.position] + [robot.lidar2world(i.point) for i in lidar_data]
+        line_set.points = o3d.utility.Vector3dVector(points)
+        vis.remove_geometry(line_set)
+        vis.add_geometry(line_set)
 
         res, colors = [], []
         for x in range(world.size[0]):
             for y in range(world.size[1]):
                 for z in range(world.size[2]):
                     p = world.get_cell((x, y, z)).get_p()
-                    if p < 0.6:
+                    if p <= 0.5:
                         continue
                     res.append([x * t, y * t, z * t])
                     c = 1 - p

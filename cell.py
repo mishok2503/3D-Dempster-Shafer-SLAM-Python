@@ -44,6 +44,20 @@ class DSCell:
         return self.get_p()
 
 
+
+# class Cell:
+#     def __init__(self, p: float = 0.5):
+#         self.p = p
+#
+#     def update(self, value: float):
+#         self.p = (self.p + value) / 2
+#
+#     def get_p(self):
+#         return self.p
+#
+#     def get_score(self) -> float:
+#         return self.get_p()
+
 class Cell:
     def __init__(self, p: float = 0.5):
         self.sum = p

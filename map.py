@@ -54,6 +54,7 @@ class Map:
         return ((np.einsum("ij,kj->ik", vecs, robot.rotation_matrix) + robot.position) / self.cell_size).astype(int)
 
     def get_score(self, robot: Robot, points: np.array):
+        t = np.array(self.world2map(robot.position))
         world_points = self.w2m(robot, np.array([p.point for p in points if p.type == LidarPointType.POINT]))
-        return np.sum([self.get_cell(p).get_score() for p in world_points])
+        return np.sum([self.get_cell(p).get_score() * np.linalg.norm(t - p) for p in world_points])
 
