@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 from typing import Tuple
 
@@ -7,13 +9,29 @@ from cell import Cell, DSCell
 from util import bresenham3_line, numpy_map
 
 
+def dist(a, b):
+    return max(abs(b[0] - a[0]), abs(b[1] - a[1]), abs(b[2] - a[2]))
+
+
 class Map:
     def __init__(self, size: Tuple[int, int, int], cell_size: float, is_ds: bool = False, hole_size: int = 4):
         self.size = size
         self.cell_size = cell_size
         self.hole_size = hole_size
-        rx, ry, rz = map(range, size)
-        self.__map = np.array([[[DSCell() if is_ds else Cell() for _ in rz] for _ in ry] for _ in rx])
+        self.__map = np.empty(size, dtype=object)
+        self.__map.flat = [DSCell() for _ in self.__map.flat]
+        self.__is_ds = is_ds
+
+    def store(self, filename):
+        with open(filename, "w") as file:
+            t = [[[cell.get_p() > 0.5 for cell in row] for row in plane] for plane in self.__map]
+            json.dump(t, file)
+
+    def load(self, filename):
+        with open(filename, "r") as file:
+            data = json.load(file)
+            self.__map = [[[DSCell(p) if self.__is_ds else Cell(p) for p in row] for row in plane] for plane in data]
+
 
     def get_center(self) -> np.array:
         return self.cell_size * numpy_map(lambda c: c / 2, self.size)
@@ -34,20 +52,25 @@ class Map:
                 )
 
     def __beam_update(self, begin: Tuple[int, ...], end: Tuple[int, ...]):
-        points = bresenham3_line(begin, end, self.hole_size)
-        full_hole = self.hole_size * 2 + 1
-        if len(points) < full_hole + 1:
-            return
-        for coords in points[:-full_hole]:
+        points = bresenham3_line(begin, end, 0)
+        for coords in points:
+            if dist(coords, end) < self.hole_size:
+                break
             self.__cell_update(coords, 0)
 
-        for i in range(full_hole):
-            self.__cell_update(points[i - full_hole], 1 - abs(i - self.hole_size) / self.hole_size)
+        for i in range(-self.hole_size, self.hole_size + 1):
+            for j in range(-self.hole_size, self.hole_size + 1):
+                for k in range(-self.hole_size, self.hole_size + 1):
+                    coords = (end[0] + i, end[1] + j, end[2] + k)
+                    self.__cell_update(coords, 0.5 + 0.5 / (1 + dist(end, coords)))
 
     def __cell_update(self, coords: Tuple[int, ...], value: float):
         self.get_cell(coords).update(value)
 
     def get_cell(self, coords: Tuple[int, ...]) -> Cell:
+        for i in [0, 1, 2]:
+            if coords[i] < 0 or coords[i] >= self.size[i]:
+                return Cell()
         return self.__map[coords[0]][coords[1]][coords[2]]
 
     def w2m(self, robot: Robot, vecs: np.array) -> np.array:

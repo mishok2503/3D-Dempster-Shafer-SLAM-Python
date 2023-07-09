@@ -10,20 +10,15 @@ from map import Map
 from lidar import LidarPoint, LidarPointType
 
 np.random.seed(0)
-world = Map((1000, 1000, 4), 0.02, False, 5)
+world = Map((500, 500, 85), 0.1, True, 1)
 robot = Robot(world.get_center())
+
+# world.store("world.json")
 
 vis = o3d.visualization.Visualizer()
 vis.create_window()
 
 t = world.cell_size
-
-lines = [[0, i + 1] for i in range(600)]
-colors = [[0, 1, 0] for i in range(len(lines))]
-line_set = o3d.geometry.LineSet()
-line_set.lines = o3d.utility.Vector2iVector(lines)
-line_set.colors = o3d.utility.Vector3dVector(colors)
-vis.add_geometry(line_set)
 
 # robot_box = o3d.geometry.TriangleMesh.create_sphere(0.1)
 # robot_box.paint_uniform_color([1, 0, 0])
@@ -37,12 +32,26 @@ pcd.points = o3d.utility.Vector3dVector([])
 vis.add_geometry(pcd)
 
 e = 0
-N = 50
+N = 1000
+T = 700
 rot, pos = None, None
 keep_running = True
 with open(sys.argv[1], "r") as file:
     data = json.load(file)["data"]
+
+    lines = [[0, i + 1] for i in range(len(data["measurements"][0]["lidar_data"]))]
+    colors = [[0, 1, 0] for i in range(len(lines))]
+    line_set = o3d.geometry.LineSet()
+    line_set.lines = o3d.utility.Vector2iVector(lines)
+    line_set.colors = o3d.utility.Vector3dVector(colors)
+    vis.add_geometry(line_set)
+
     for measurement in data["measurements"]:
+        e += 1
+        print(e)
+
+        if e < T:
+            continue
         lidar_data = []
         for point in measurement["lidar_data"]:
             point_type = LidarPointType.UNKNOWN
@@ -54,18 +63,16 @@ with open(sys.argv[1], "r") as file:
         lidar_data = np.array(lidar_data)
 
         if pos is not None:
-            robot.apply_odometry(pos, rot, world, lidar_data)
+            robot.apply_odometry(pos, rot, world, lidar_data, 0 if e < T + 100 else 300)
 
         pos = np.array(measurement["odometry"]["position"])
         rot = np.array(measurement["odometry"]["euler_angles"])
 
         world.update(robot, lidar_data)
 
-        e += 1
-        print(e)
-
-        # if e < N:
-        #     continue
+        if e < N + T and e % 50 != 10:
+            continue
+        # world.store("world.json")
 
         ###############################
 
@@ -97,7 +104,7 @@ with open(sys.argv[1], "r") as file:
         keep_running = vis.poll_events()
         vis.update_renderer()
 
-        if e > N:
+        if e > N + T:
             break
 
     while keep_running:
