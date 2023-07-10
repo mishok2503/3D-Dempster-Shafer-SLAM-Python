@@ -1,4 +1,3 @@
-import copy
 import sys
 
 import numpy as np
@@ -6,11 +5,12 @@ import open3d as o3d
 import json
 
 from robot import Robot
-from map import Map
+from map import Map, get_score
 from lidar import LidarPoint, LidarPointType
 
+
 np.random.seed(0)
-world = Map((500, 500, 85), 0.1, True, 1)
+world = Map((800, 800, 180), 0.1, True, 1)
 robot = Robot(world.get_center())
 
 # world.store("world.json")
@@ -33,7 +33,7 @@ vis.add_geometry(pcd)
 
 e = 0
 N = 1000
-T = 700
+T = 100
 rot, pos = None, None
 keep_running = True
 with open(sys.argv[1], "r") as file:
@@ -88,7 +88,7 @@ with open(sys.argv[1], "r") as file:
         for x in range(world.size[0]):
             for y in range(world.size[1]):
                 for z in range(world.size[2]):
-                    p = world.get_cell((x, y, z)).get_p()
+                    p = get_score(world.get_cell((x, y, z)))
                     if p <= 0.5:
                         continue
                     res.append([x * t, y * t, z * t])

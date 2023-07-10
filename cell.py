@@ -21,10 +21,10 @@ def combine(a, b):
 
 class DSCell:
     def __init__(self, p: float = 0.5):
-        self.p = DSCell.__get_ds(p)
+        self.p = DSCell.get_ds(p)
 
     def update(self, value: float):
-        self.p = combine(self.p, DSCell.__get_ds(value))
+        self.p = combine(self.p, DSCell.get_ds(value))
         res = 0
         for i in self.p:
             res += self.p[i]
@@ -33,7 +33,7 @@ class DSCell:
             input()
 
     @staticmethod
-    def __get_ds(p: float):
+    def get_ds(p: float):
         return {
             (0, 0): 0,
             (1, 0): 1 - p - 0.05,
