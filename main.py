@@ -10,7 +10,7 @@ from lidar import LidarPoint, LidarPointType
 
 
 np.random.seed(0)
-world = Map((800, 800, 180), 0.1, True, 1)
+world = Map((300, 300, 150), 0.2, True, 1)
 robot = Robot(world.get_center())
 
 # world.store("world.json")
@@ -20,7 +20,7 @@ vis.create_window()
 
 t = world.cell_size
 
-# robot_box = o3d.geometry.TriangleMesh.create_sphere(0.1)
+# robot_box = o3d.geometry.TriangleMesh.create_sphere(1)
 # robot_box.paint_uniform_color([1, 0, 0])
 # vis.add_geometry(robot_box)
 # helper = copy.deepcopy(robot_box)
@@ -32,8 +32,10 @@ pcd.points = o3d.utility.Vector3dVector([])
 vis.add_geometry(pcd)
 
 e = 0
-N = 1000
-T = 100
+N = 100
+T = 0
+S = 0
+mod = 100
 rot, pos = None, None
 keep_running = True
 with open(sys.argv[1], "r") as file:
@@ -63,14 +65,15 @@ with open(sys.argv[1], "r") as file:
         lidar_data = np.array(lidar_data)
 
         if pos is not None:
-            robot.apply_odometry(pos, rot, world, lidar_data, 0 if e < T + 100 else 300)
+            robot.apply_odometry(pos, rot, world, lidar_data, 0 if e < S + T else 3000)
+            print(robot.position, robot.rotation)
 
         pos = np.array(measurement["odometry"]["position"])
         rot = np.array(measurement["odometry"]["euler_angles"])
 
         world.update(robot, lidar_data)
 
-        if e < N + T and e % 50 != 10:
+        if e < N + T and e % mod != mod - 1:
             continue
         # world.store("world.json")
 
@@ -82,7 +85,7 @@ with open(sys.argv[1], "r") as file:
         points = [robot.position] + [robot.lidar2world(i.point) for i in lidar_data]
         line_set.points = o3d.utility.Vector3dVector(points)
         vis.remove_geometry(line_set)
-        vis.add_geometry(line_set)
+        # vis.add_geometry(line_set)
 
         res, colors = [], []
         for x in range(world.size[0]):

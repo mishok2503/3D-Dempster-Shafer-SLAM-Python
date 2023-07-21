@@ -12,9 +12,8 @@ class Robot:
         return self.rotation_matrix @ point + self.position
 
     def apply_odometry(self, delta_pos: np.array, delta_rot: np.array, world, data, samples: int = 350):
-        best, score = None, -1
-        stddev_pos = 0.11
-        stddev_rot = 0.1
+        stddev_pos = 0.3
+        stddev_rot = 0.4
 
         self.rotation += delta_rot
         if (delta_rot != [0, 0, 0]).any():
@@ -24,9 +23,13 @@ class Robot:
         if samples == 0:
             return
 
+        best, score = self, world.get_score(self, data)
+
         for i in range(samples):
             dr = [np.random.normal(0, stddev_rot), 0, 0]
+            # dr = np.random.normal(0, stddev_rot, 3)
             dp = [np.random.normal(0, stddev_pos), np.random.normal(0, stddev_pos), 0]
+            # dp = np.random.normal(0, stddev_rot, 3)
             rot = self.rotation + dr
             pos = self.position + dp
             new_robot = Robot(pos, rot)
