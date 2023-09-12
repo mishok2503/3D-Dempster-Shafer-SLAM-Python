@@ -1,4 +1,6 @@
-# 3D Dempster-Shafer SLAM
+# 3D Dempster-Shafer SLAM Python
+
+🔴 **This version is deprecated. Current version:** https://github.com/mishok2503/3D-Dempster-Shafer-SLAM ❗
 
 This repository contains an implementation of the 3D Dempster-Shafer Simultaneous Localization and Mapping (SLAM) algorithm. It extends the [vinySLAM](https://github.com/OSLL/slam-constructor) approach to three-dimensional space.
 
@@ -8,8 +10,8 @@ This repository contains an implementation of the 3D Dempster-Shafer Simultaneou
 1. Clone repository
 
     ```bash
-   git clone https://github.com/mishok2503/3D-Dempster-Shafer-SLAM.git
-   cd 3D-Dempster-Shafer-SLAM 
+   git clone https://github.com/mishok2503/3D-Dempster-Shafer-SLAM-Python.git
+   cd 3D-Dempster-Shafer-SLAM-Python
    ```
 
 2. Install Open3d
@@ -25,10 +27,3 @@ This repository contains an implementation of the 3D Dempster-Shafer Simultaneou
     python main.py <file-with-data.json>
 ```
 [Input file format](https://github.com/mishok2503/slam-3d-datasets-generator#output-format)
-   
-
-## Test
-
-```bash
-    python main.py tests/data/result.json
-```
